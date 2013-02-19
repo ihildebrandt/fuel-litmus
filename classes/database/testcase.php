@@ -8,40 +8,35 @@ abstract class Database_TestCase extends \PHPUnit_Extensions_Database_TestCase
 
 	protected static $_module = null;
 
-	protected static $_config = null;
-
 	protected static $_setup = null;
 
-	protected static function config()
+	protected static function config($set)
 	{
-		if ( static::$_config === null ) {
-			$class = explode('\\', get_called_class());
-			$class = strtolower(array_pop($class));
-			if ( \Str::starts_with($class, 'test_') ) {
-				$class = \Str::sub($class, 5);
-			}
-			static::$_config = $class;
+		$class = explode('\\', get_called_class());
+		$class = strtolower(array_pop($class));
+		if ( \Str::starts_with($class, 'test_') ) {
+			$class = \Str::sub($class, 5);
 		}
 
-		return static::$_config;
+		return $class.'.'.$set;
 	}
 
 	public function getConnection()
 	{
-		$connection = \Database_Connection::instance(static::$_connection)
-			->connection();
-
-		if ( ! $connection instanceof \PDO ) 
-			throw new Exception("Litmus is only compatible with PDO connection types");
-
-		$connection->exec('set foreign_key_checks=0');
-
-		return $this->createDefaultDBConnection($connection);
+		return new Database_Connection(\Database_Connection::instance(static::$_connection));
 	}
 
-	public function createConfigDataSet($config, $module = null)
+	public function connection()
+	{
+		return $this->getConnection();
+	}
+
+	public function create_config_dataset($config, $module = null)
 	{
 		$file = 'litmus';
+
+		$config = static::config($config);
+		$module or $module = static::$_module;
 		$module and $file = $module.'::'.$file;
 
 		\Config::load($file, true);
@@ -51,7 +46,6 @@ abstract class Database_TestCase extends \PHPUnit_Extensions_Database_TestCase
 
 	public function getDataSet()
 	{
-		$config = static::config().'.setup';
-		return $this->createConfigDataSet($config, static::$_module);
+		return $this->create_config_dataset('setup', static::$_module);
 	}
 }
