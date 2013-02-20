@@ -6,8 +6,10 @@ class ArrayDataSet extends \PHPUnit_Extensions_Database_DataSet_AbstractDataSet
 {
 	protected $tables = array();
 
-	public function __construct(array $data)
+	public function __construct(array $data = null)
 	{
+		$data or $data = array();
+		
 		foreach ($data as $table_name => $rows) 
 		{
 			$cols = array();
